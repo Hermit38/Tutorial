@@ -8,20 +8,33 @@ on:
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+
     steps:
-      - name: Check code
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Install Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.13'
 
-      - name: Install lib
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install Ruff
         run: |
           pip install ruff
 
-      - name: Run Ruff
+      - name: Run Ruff (Linter)
         run: |
           ruff check . --exclude=README.md
+
+      - name: Run Ruff (Formatter check)
+        run: |
+          ruff format --check . --exclude=README.md
